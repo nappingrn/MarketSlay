@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <apikit:config name="Item_limit-config" raml="Item_limit.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="e67a92dc-da42-4557-9168-595dd497e1c4">
+        <db:generic-connection url="jdbc:postgresql://bankingapp.c3povt7bydjz.us-east-2.rds.amazonaws.com:5432/postgres" driverClassName="org.postgresql.Driver" user="postgres" password="none" />
+    </db:config>
+    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="7f90b7b6-79bd-496d-8838-c3637f91ceea">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <sub-flow name="jsonoutput" doc:id="62cc6144-803b-416d-a0b7-64f0c924afcc">
+        <ee:transform doc:name="Transform Message" doc:id="dbf85921-5676-4e97-8c64-a4a242e1e39d">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </sub-flow>
+    <flow name="Item_limit-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]" />
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="Item_limit-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="Item_limit-console">
+        <http:listener config-ref="HTTP_Listener_config" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]" />
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="Item_limit-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\bus\getoffers:Item_limit-config">
+        <logger level="INFO" message="get:\bus\getoffers:Item_limit-config" />
+        <db:select doc:name="Select" doc:id="57fe3e46-4c82-47d0-8dc5-f3a59ee0e717" config-ref="Database_Config">
+            <db:sql>select * from offers order by id desc limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="08fecc4f-e494-424a-9d09-e213f5e92184" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\limit\high:Item_limit-config">
+        <logger level="INFO" message="get:\bus\limit\high:Item_limit-config" />
+        <db:select doc:name="Select" doc:id="32213fcc-db81-42de-9847-f80a107afd45" config-ref="Database_Config">
+            <db:sql>select * from data order by buy_quantity DESC limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="03a1bf73-6e23-4923-9fce-7d74110864bc" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\value\high:Item_limit-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  item: "rune dagger",
+  "gold per kill": 50,
+  hp: 10000,
+  level: 1
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:select doc:name="Select" doc:id="da2df2e1-f5db-457c-b8fc-c56b6ee82220" config-ref="Database_Config">
+            <db:sql>select * from data order by overall_average DESC limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="2b5def58-63ad-48d4-a7df-06814a8d31be" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\limit:Item_limit-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  item: "rune dagger",
+  limit: 10
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:select doc:name="Select" doc:id="0b388df0-5676-4245-b118-2d098d2a7402" config-ref="Database_Config">
+            <db:sql>select * from data order by buy_quantity ASC limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="72258039-ec0c-4341-9a82-8f0015ad99e9" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\value\low:Item_limit-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  item: "rune dagger",
+  "gold per kill": 50,
+  hp: 10000,
+  level: 1
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:select doc:name="Select" doc:id="a799f7e4-2a6d-4a34-994c-95f5e21dc2be" config-ref="Database_Config">
+            <db:sql>select * from data order by overall_average ASC limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="9fadc0ae-111c-4d6d-99a7-74ee29689677" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\limit\low:Item_limit-config">
+        <logger level="INFO" message="get:\bus\limit\low:Item_limit-config" />
+        <db:select doc:name="Select" doc:id="f453c8d7-4a1d-4a47-92d7-28a79e110fd1" config-ref="Database_Config">
+            <db:sql>select * from data order by overall_quantity ASC limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="7bc1e3dc-9cfd-4e1e-a4df-9277e91a5077" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\value:Item_limit-config">
+        <logger level="INFO" message="get:\bus\value:Item_limit-config" />
+        <db:select doc:name="Select" doc:id="b426d2db-de14-4b9d-a034-8263be93d3b4" config-ref="Database_Config">
+            <db:sql>select * from data order by buy_quantity ASC limit 50;</db:sql>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="1f8ecd62-601e-416a-bd8c-c3975a4b53aa" name="jsonoutput" />
+    </flow>
+    <flow name="get:\bus\item\(itemname):Item_limit-config">
+        <ee:transform doc:id="9f7cef38-4401-4b5c-ac19-107b4886c3ec">
+            <ee:variables>
+                <ee:set-variable variableName="itemname"><![CDATA[attributes.uriParams.itemname]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <set-variable value="#[vars.itemname]" doc:name="Set Variable" doc:id="de86a5a4-6928-4791-96bd-40ae29293d70" variableName="itemname" />
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="fe5c2385-dfbd-4dcb-8753-76affb9b6e6c">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: "Rune platelegs",
+  buy_average: 1000,
+  buy_quantity: 30,
+  id: 6128,
+  overall_average: 3000,
+  overall_quantity: 45,
+  sell_average: 5000,
+  sell_quantity: 60,
+  sp: 6000
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:select doc:name="Select" doc:id="9394c88d-8818-4ebb-b327-c105da4c898f" config-ref="Database_Config">
+            <db:sql>select * from data where name like :item order by overall_average DESC limit 50;</db:sql>
+            <db:input-parameters><![CDATA[#[{"item": "%"++ vars.itemname ++ "%"}]]]></db:input-parameters>
+        </db:select>
+        <flow-ref doc:name="Flow Reference" doc:id="559b8970-33a6-4f40-bb8a-74b94d6011e7" name="jsonoutput" />
+    </flow>
+    <flow name="post:\bus\newitem:Item_limit-config">
+        <logger level="INFO" message="post:\bus\newitem:Item_limit-config" />
+        <set-variable value="#[[attributes.queryParams.buy_average, attributes.queryParams.buy_quantity, attributes.queryParams.id,  attributes.queryParams.name, attributes.queryParams.overall_average, attributes.queryParams.overall_quantity, attributes.queryParams.sell_average, attributes.queryParams.sell_quantity, attributes.queryParams.sp]]" doc:name="Set Variable" doc:id="e798818f-915a-406a-813a-c22a4d93781e" variableName="newItem" />
+        <db:insert doc:name="Insert" doc:id="07378336-2dec-4b31-9eb4-99f8e6649f14" config-ref="Database_Config">
+            <db:sql>insert into data (buy_average, buy_quantity, id, name, overall_average, overall_quantity,
+						  sell_quantity,sell_average) 
+			 values(:buy_average, :buy_quantity, :id, :name, :overall_average, :overall_quantity,
+						 :sell_quantity, :sell_average);</db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"buy_average": vars.newItem[0],
+	"buy_quantity": vars.newItem[1],
+	"id": vars.newItem[2],
+	"name": vars.newItem[3] ,
+	"overall_average": vars.newItem[4],
+	"overall_quantity": vars.newItem[5],
+	"sell_quantity": vars.newItem[6],
+	"sell_average":vars.newItem[7]
+}]]]></db:input-parameters>
+        </db:insert>
+    </flow>
+    <flow name="post:\bus\postoffer:Item_limit-config">
+        <logger level="INFO" message="post:\bus\postoffer:Item_limit-config" />
+        <set-variable value="#[[attributes.queryParams.username,  attributes.queryParams.itemname, attributes.queryParams.quantity, attributes.queryParams.markup ]]" doc:name="Set Variable" doc:id="d27aa1e9-d95b-4c32-9e40-cc23d1946c91" variableName="setOffers" />
+        <db:insert doc:name="Insert" doc:id="10b4606c-0fa8-4134-8049-e708ce72bc28" config-ref="Database_Config">
+            <db:sql>insert into offers (username, item, markup, amount) values(:user, :item, :markup, :amount);</db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"user" : vars.setOffers[0],
+	"item" : vars.setOffers[1],
+	"amount": vars.setOffers[2],	
+	"markup": vars.setOffers[3]
+}]]]></db:input-parameters>
+        </db:insert>
+    </flow>
+    <flow name="post:\bus\takeoffer:Item_limit-config">
+        <logger level="INFO" message="post:\bus\takeoffer:Item_limit-config" />
+        <set-variable value="#[[attributes.queryParams.username, attributes.queryParams.offernumber]]" doc:name="Set Variable" doc:id="b6f4a047-6e8c-40c0-9e06-f51d2f1fcd85" variableName="offertaken"/>
+		<db:insert doc:name="Insert" doc:id="939b1636-dc72-47ea-9e6c-6ddb67d3ff0e" config-ref="Database_Config">
+			<db:sql >insert into takenoffer (usertaken, idtaken) values(:name, :id);</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"name": vars.offertaken[0],
+	"id": vars.offertaken[1]
+	
+	
+}]]]></db:input-parameters>
+		</db:insert>
+    </flow>
+    <flow name="get:\bus\takenoffers:Item_limit-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="ab7b56ec-91e3-4e7e-b664-593e4bcaabc8">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  item: "rune dagger",
+  "gold per kill": 50,
+  hp: 10000,
+  level: 1
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<db:select doc:name="Select" doc:id="1f0b74d7-c500-430f-a4b0-6b1dd7848c32" config-ref="Database_Config">
+			<db:sql >select * from takenoffer limit 50;</db:sql>
+		</db:select>
+		<flow-ref doc:name="Flow Reference" doc:id="1192fc08-3d16-4494-a6d2-090b5cd6137c" name="jsonoutput"/>
+    </flow>
+</mule>

@@ -1,0 +1,145 @@
+#%RAML 1.0
+---
+
+
+title: slaybuddy
+baseUri: https://api.127.0.0.1:8081/
+
+/bus:
+  /slaybuddy:
+    /task:
+      /{monstername}:
+        /{kills}:
+          get:
+            responses:
+              200:
+                body:
+                  application/json:
+    /mostxp:
+      get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      if entry is "dragon"
+                      {
+                      "name": blue dragon,
+                       "gold per kill" : 5000,
+                       "hp":200,
+                       "level":40
+                       }
+                       {
+                       "name": red dragon,
+                       "gold per kill" : 4000,
+                       "hp":200,
+                       "level":40
+                       }
+                       {
+                       "name": black dragon,
+                       "gold per kill" : 7000,
+                       "hp":200,
+                       "level":40
+                       }
+                    }
+
+    /leastxp:
+      get:
+          responses:
+            200:
+              body:
+                application/json:
+                 
+
+
+    /mostgp:
+      get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      if entry is "dragon"
+                      {
+                      "name": giant,
+                       "gold per kill" : 50,
+                       "hp":10000,
+                       "level":1
+                       }
+                       {
+                       "name": smaller giant,
+                       "gold per kill" : 40,
+                       "hp":5000,
+                       "level":1
+                       }
+                       {
+                       "name": even smaller giant,
+                       "gold per kill" : 70,
+                       "hp":4000,
+                       "level":1
+                       }
+                    }
+
+
+    /leastgp:
+      get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      if entry is "dragon"
+                      {
+                      "name": ghost,
+                       "gold per kill" : 0,
+                       "hp":10,
+                       "level":
+                       }
+                       {
+                       "name": rat,
+                       "gold per kill" : 1,
+                       "hp":5,
+                       "level":1
+                       }
+                       {
+                       "name": bum,
+                       "gold per kill" : 10,
+                       "hp":40,
+                       "level":1
+                       }
+                    }
+
+    /index:
+      /{monstername}:
+        get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      if entry is "dragon"
+                      {
+                      "name": blue dragon,
+                       "gold per kill" : 5000,
+                       "hp":200,
+                       "level":40
+                       }
+                       {
+                       "name": red dragon,
+                       "gold per kill" : 4000,
+                       "hp":200,
+                       "level":40
+                       }
+                       {
+                       "name": black dragon,
+                       "gold per kill" : 7000,
+                       "hp":200,
+                       "level":40
+                       }
+                    }
+
+

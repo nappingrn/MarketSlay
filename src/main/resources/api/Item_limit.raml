@@ -1,0 +1,278 @@
+#%RAML 1.0
+---
+
+
+title: GEbuddy
+baseUri: https://api.127.0.0.1:8082/
+
+/bus:
+  /item:
+    /{itemname}:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                      {
+                        "name": Rune platelegs,
+                        "buy_average": 1000,
+                        "buy_quantity": 30,
+                        "id": 6128,
+                        "overall_average": 3000,
+                        "overall_quantity": 45,
+                        "sell_average": 5000,
+                        "sell_quantity": 60,
+                        "sp": 6000 
+                      }
+  /getoffers:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                      {
+                        "user": zezima,
+                        "needs item" : rune legs,
+                        "payment per item":1000
+                      }
+                      {
+                        "user": woox,
+                        "needs item" : brews,
+                        "payment per item":500
+                      }
+                      {
+                        "user": lynx titan,
+                        "needs item" : monkfish,
+                        "payment per item":100
+                      }
+
+  /postoffer:
+    post:
+      queryParameters:
+        username:
+          description: The name of your account
+          displayName: Username
+          type: string
+          example: picklerick
+          required: true
+        password:
+          description: The password of your account
+          displayName: passwords
+          type: string
+          example: password123
+          required: true
+        itemname:
+          description: The name of the item you want
+          displayName: Itemname
+          type: string
+          example: rune dagger
+          required: true
+        quantity:
+          description: The amount of the item you want
+          displayName: amount
+          type: number
+          example: 100
+          required: true
+        markup:
+          description: how much extra per item you want to pay
+          displayName: markup
+          type: number
+          example: 100
+          required: true
+
+
+  /takeoffer:
+    post:
+       queryParameters:
+          username:
+            description: The name of your account
+            displayName: Username
+            type: string
+            example: picklerick
+            required: true
+          password:
+            description: The password of your account
+            displayName: passwords
+            type: string
+            example: password123
+            required: true
+          offernumber:
+            description: the id of the offer in the list
+            displayName: Itemname
+            type: number
+            example: 123
+            required: true
+
+
+  /limit:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                       {
+                         "item": rune dagger,
+                         "limit": 10
+                       }
+                       
+    /high:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                        {
+                          "item": dragon dagger,
+                          "value" : 100000
+                        }
+                        {
+                          "item": dragon longsword,
+                          "value" : 90000
+                        }
+                        {
+                          "item": rune dagger,
+                          "value" : 30000
+                        }
+                       
+    /low:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                        {
+                         "item": bronze dagger,
+                         "value" : 50
+                        }
+                        {
+                         "item": bronze longsword,
+                         "value" : 100
+                        }
+                        {
+                         "item": bronze battleaxe,
+                         "value" : 200
+                        }
+
+  /value:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                      {
+                       "item": abby whip,
+                       "value" : 3000000
+                      }
+                      {
+                       "item": addy longsword,
+                       "value" : 1000
+                      }
+                      {
+                       "item": addy battleaxe,
+                       "value" : 2000
+                      }
+    /high:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                        {
+                         "item": rune dagger,
+                         "gold per kill" : 50,
+                         "hp":10000,
+                         "level":1
+                        }
+
+    /low:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                        {
+                         "item": rune dagger,
+                         "gold per kill" : 50,
+                         "hp": 10000,
+                         "level": 1
+                        }
+  /takenoffers:
+    get:
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                        {
+                         "item": rune dagger,
+                         "gold per kill" : 50,
+                         "hp": 10000,
+                         "level": 1
+                        }
+  /newitem:
+    post:
+      queryParameters:
+        buy_average:
+          description: average buy price
+          displayName: buy-price
+          type: number
+          example: 12422
+          required: true
+        buy_quantity:
+          description: average amount bought at once
+          displayName: buy-quantity
+          type: number
+          example: 12302
+          required: true
+        id:
+          description: items ID
+          displayName: ID
+          type: integer
+          example: 6482
+          required: true
+        name:
+          description: the items name
+          displayName: Item Name
+          type: string
+          example: Rune Platelegs
+          required: true
+        overall_average:
+          description: average aggregated price of buy and sell
+          displayName: avg-cost
+          type: number
+          example: 100
+          required: true
+        overall_quantity:
+          description: verage aggregated quantity of buy and sell
+          displayName: avg-quantity
+          type: number
+          example: 100
+          required: true
+        sell_average:
+          description: average price of item sold 
+          displayName: sell-avg
+          type: number
+          example: 100
+          required: true
+        sell_quantity:
+          description: average amount of item sold at once
+          displayName: avg-sell-quantity
+          type: number
+          example: 100
+          required: true
+        sp:
+          description: gross value of item
+          displayName: gross price
+          type: number
+          example: 100
+          required: true
+
+

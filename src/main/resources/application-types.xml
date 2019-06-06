@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="strong" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="kills" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: integer]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#2bfe07b0-ead2-41ac-b499-da33fb627932">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:variables>
+          <types:variable name="monstername" type="strong"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#3775e03b-8136-4698-973a-0922b586cd4f">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="strong"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#afe42cdf-bbc2-4ee7-8bd6-b928925c5425">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="strong"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#8620efcc-a768-4a83-afea-bab45cff1433">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="strong"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#c23b4b81-5951-47f3-98ec-4e4c1dca5a23">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="strong"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#450678cd-f145-4a68-906a-c0aebb99ad46">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:variables>
+          <types:variable name="kills" type="kills"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#9f7cef38-4401-4b5c-ac19-107b4886c3ec">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:variables>
+          <types:variable name="itemname" type="strong"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

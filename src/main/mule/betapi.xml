@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="betapi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8082" />
+    </http:listener-config>
+    <apikit:config name="betapi-config" raml="betapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config1" doc:name="Database Config" doc:id="f90d217e-aca0-4b0e-a726-fe07c4236f94" >
+		
+		<db:generic-connection url="jdbc:postgresql://project1.cj4z53gwii1d.us-east-2.rds.amazonaws.com:5432/project1" driverClassName="org.postgresql.Driver" user="master" password="none" />
+		
+	</db:config>
+	<flow name="betapi-main">
+        <http:listener config-ref="betapi-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="betapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="betapi-console">
+        <http:listener config-ref="betapi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="betapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND" enableNotifications="true" logException="true">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\bus\slaybuddy\leastgp:betapi-config">
+        <db:select doc:name="Select" doc:id="0308abe4-2cd7-4a76-a1f6-9971c9837909" config-ref="Database_Config1">
+			<db:sql >SELECT * FROM slayer_entries ORDER BY gpk ASC;
+</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="afe42cdf-bbc2-4ee7-8bd6-b928925c5425" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\bus\slaybuddy\leastgp:betapi-config" />
+    </flow>
+    <flow name="get:\bus\slaybuddy\leastxp:betapi-config">
+        <db:select doc:name="Select" doc:id="7ed84ef2-cb2e-4f3c-b42d-f4c71afdef11" config-ref="Database_Config1">
+			<db:sql >SELECT * FROM slayer_entries ORDER BY hp ASC;</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3775e03b-8136-4698-973a-0922b586cd4f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\bus\slaybuddy\leastxp:betapi-config" />
+    </flow>
+    <flow name="get:\bus\slaybuddy\mostgp:betapi-config">
+        <db:select doc:name="Select" doc:id="c32866af-f217-440e-ae15-a33efad994a6" config-ref="Database_Config1">
+			<db:sql >SELECT * FROM slayer_entries ORDER BY gpk DESC;</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="8620efcc-a768-4a83-afea-bab45cff1433" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\bus\slaybuddy\mostgp:betapi-config" />
+    </flow>
+    <flow name="get:\bus\slaybuddy\mostxp:betapi-config">
+		<ee:transform doc:name="Transform Message" doc:id="c23b4b81-5951-47f3-98ec-4e4c1dca5a23" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:select doc:name="Select" doc:id="09848700-6e6f-4678-b60f-abd28d2dc8c8" config-ref="Database_Config1">
+			<db:sql>SELECT * FROM slayer_entries ORDER BY hp DESC;</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="f03745e4-6e4a-4927-93c4-8844452cddd4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\bus\slaybuddy\mostxp:betapi-config" />
+    </flow>
+    <flow name="get:\bus\slaybuddy\task\(monstername)\(kills):betapi-config">
+        <set-variable value="attributes.uriParams.kills" doc:name="Set Variable" doc:id="ef08821d-066f-4f1c-84bc-e4b25741ff0e" variableName="kills"/>
+		<set-variable value="#[attributes.uriParams.monstername]" doc:name="Set Variable" doc:id="0b043e8e-3738-4a52-b412-0475b1fd07c7" variableName="monster"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9f345c12-7dad-45f1-a033-9f09aee4ac61" />
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="450678cd-f145-4a68-906a-c0aebb99ad46">
+            <ee:variables>
+                <ee:set-variable variableName="monstername"><![CDATA[attributes.uriParams.monstername]]></ee:set-variable>
+                <ee:set-variable variableName="kills"><![CDATA[output application/java
+---
+attributes.uriParams.kills as Number]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="3f460814-d1b1-41ba-b777-9e36f9a5567d" message="before select"/>
+		<db:select doc:name="Select" doc:id="63e562a5-d7f2-4d1a-a853-c1a23e3742dc" config-ref="Database_Config1">
+			<db:sql >select * from slayer_entries where name = :name</db:sql>
+			<db:input-parameters ><![CDATA[#[{ name: vars.monstername}]]]></db:input-parameters>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="7544ebf3-9c31-4e91-9102-643b132181fd" message="#[payload.gpk[0]]"/>
+		<set-variable value="#[payload.gpk[0] * vars.kills as Number]" doc:name="Set Variable" doc:id="429fe33d-e617-4ecf-87d4-147c32fce70b" variableName="newGold"/>
+		<set-payload value='#["made: " ++ vars.newGold ++ "gp from " ++ vars.kills ++ " " ++  vars.monstername]' doc:name="Set Payload" doc:id="388d27b8-12d9-4415-9719-4736355032c0" />
+		<logger level="INFO" message='#["made: " ++ vars.newGold ++ " from " ++ vars.kills ++ " " ++ vars.monstername]' />
+    </flow>
+    <flow name="get:\bus\slaybuddy\index\(monstername):betapi-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="2bfe07b0-ead2-41ac-b499-da33fb627932">
+            <ee:variables>
+                <ee:set-variable variableName="monstername"><![CDATA[attributes.uriParams.monstername]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="Select" doc:id="4c81cc5b-1f68-489a-b877-c63a2a3f3a73" config-ref="Database_Config1">
+			<db:sql >select * from slayer_entries where name = :name</db:sql>
+			<db:input-parameters ><![CDATA[#[{"name" : attributes.uriParams.monstername}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="819470e0-75f6-447a-976c-b47063b3f8ac" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\bus\slaybuddy\index\(monstername):betapi-config" />
+    </flow>
+</mule>
